@@ -1,0 +1,22 @@
+package turbosqel.analizer {
+	public class AnalizeType {
+		
+		///////////////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////////
+		//
+		//  access Types :
+		//
+		public static const READWRITE:String = "readwrite";
+		public static const READ:String = "readonly";
+		public static const WRITE:String = "writeonly";
+		public static const FUNCTION:String = "function";
+		
+		///////////////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////////
+		//
+		//  object type :
+		//
+		//public static const DYNAMIC:String = "dynamic";
+		//public static const STATIC:String = "static";
+	}
+}
