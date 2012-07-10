@@ -34,7 +34,7 @@ package turbosqel.services {
 		/**
 		 * remote function params
 		 */
-		public var params:Array = new Array();
+		public var params:Vector.<ParamPair> = new Vector.<ParamPair>();
 		/**
 		 * last typed parameters
 		 */
@@ -72,8 +72,8 @@ package turbosqel.services {
 		public function toString():String {
 			var st:String = name + "( ";
 			for (var i:int ; i < params.length ; i++) {
-				st = st.concat(params[i] + " ,");
-			}
+				st = st.concat(params[i].name + ":" + params[i].type + " ,");
+			};
 			return st.substr(0, st.length -1 ) + ")";
 		}
 		

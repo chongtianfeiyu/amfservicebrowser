@@ -75,16 +75,11 @@ package turbosqel.analizerVisual {
 		/**
 		 * set analize
 		 */
-		public function set analize(analize:Analize):void {
-			trace("new analize");
+		public function set analize(an:Analize):void {
 			release();
-			if (analize == null) {
-				actual = analize;
-				return;
-			};
-			actual = analize;
-			analize.addEventListener(AnalizeEvent.INVALIDATE , UFunction.delegateEvent(draw));
-			slots.push(new AnalizeItem(this ,null, analize.analize));
+			actual = an;
+			actual.addEventListener(AnalizeEvent.INVALIDATE , UFunction.delegateEvent(draw),false,0,true);
+			slots.push(new AnalizeItem(this ,null, actual.analize));
 			draw();
 		};
 		
@@ -120,7 +115,7 @@ package turbosqel.analizerVisual {
 		
 		protected var slots:UArray = new UArray();
 		
-		internal function draw():void {
+		public function draw():void {
 			for (var i:int ; i < slots.length ; i++ ) {
 				if (slots[i].invalidate()) {
 					slots[i].y = 25 * i;
@@ -133,10 +128,6 @@ package turbosqel.analizerVisual {
 			};
 			resizeContent();
 		};
-		
-		
-		
-		
 		
 		
 		
@@ -185,11 +176,10 @@ package turbosqel.analizerVisual {
 		
 		override public function set width(value:Number):void {
 			masker.width = value - sc.width;
-			sc.x = value - sc.width;
-			vc.width = value;
+			sc.x = value;
+			vc.width = value - sc.width;
 			background.width = value;
 			resizeContent();
-			trace(value,this.width);
 		};
 		
 		//<--------- REPLACE
@@ -217,7 +207,13 @@ package turbosqel.analizerVisual {
 		//<------------------------------ REMOVE / RELEASE
 		
 		public function release():void {
-			UArray.executeAndRemove(slots , "remove");
+			if(slots){
+				UArray.executeAndRemove(slots , "remove");
+			};
+			if (actual) {
+				actual.remove();
+				actual = null;
+			};
 		};
 		
 		public function remove():void {

@@ -273,7 +273,6 @@ package turbosqel.analizerVisual {
 			} else {
 				analize.target = value;
 			};
-			
 		};
 		
 		

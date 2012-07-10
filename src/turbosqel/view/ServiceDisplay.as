@@ -11,10 +11,13 @@ package turbosqel.view {
 	import turbosqel.analizerVisual.AnalizeTree;
 	import turbosqel.console.Console;
 	import turbosqel.Data;
+	import turbosqel.data.LVar;
 	import turbosqel.events.ApplicationEvent;
 	import turbosqel.events.DynamicEvent;
 	import turbosqel.events.GlobalDispatcher;
 	import turbosqel.firefly.ElementContainer;
+	import turbosqel.library.Library;
+	import turbosqel.library.LibraryItem;
 	import turbosqel.net.AMFServiceConnection;
 	import turbosqel.services.RemoteMethod;
 	import turbosqel.services.Service;
@@ -73,7 +76,8 @@ package turbosqel.view {
 			// top: (info + save button)
 			head = new PushButton(this, { top:0 , left:0 , right:200 , height:30 , enabled:false } );
 			// save methods to lso
-			new PushButton(this , { right:100 , top:0 , height:30 }, "Save", UFunction.delegateEvent(Data.saveLocal));
+			new PushButton(this , { right:100 , top:0 , height:30 }, "Save local", UFunction.delegateEvent(Data.saveLocal));
+			new PushButton(this , { right:200 , top:0 , height:30 }, "Export service", UFunction.delegateDynamicParams(Data.exportSingleService, new LVar(this , "service") ));
 			// back to menu
 			new PushButton(this, { right:0 , top:0 , height:30, width:100 } , "back to menu" , backToMenu);
 			///////////////////////////////////////////////
@@ -90,10 +94,12 @@ package turbosqel.view {
 			infoText.editable = false;
 			infoText.textField.multiline = false;
 			///////////////////////////////////////////////
-			// center : params box , call method
+			// center : params box , call method , library
 			paramsBox = new ParamsBox(this , {top:30 , right:0 , horizontalPosition:0.3 , horizontalRatio:true , verticalPosition:-50});
-			caller = new PushButton(this , { top:30 , right:0 ,verticalPosition:-90, enabled:false } , "call function", callRemoteMethod);
-			new PushButton(this , { verticalPosition:-90 , right:0 , height:40 , enabled:false } , "save object\n(not ready yet)" );
+			caller = new PushButton(this , { top:30 , right:0 ,verticalPosition:-70, enabled:false } , "call function", callRemoteMethod);
+			new PushButton(this , { verticalPosition:-70 , right:0 , height:20 } , "save object" , exportObject );
+			new PushButton(this , { verticalPosition:-90 , right:0 , height:20 }, "library", UFunction.delegateEvent(Library.show));
+			///////////////////////////////////////////////
 			// analize
 			analizeTree = new AnalizeTree();
 			addChild(analizeTree);
@@ -106,6 +112,25 @@ package turbosqel.view {
 			GlobalDispatcher.addEventListener(ApplicationEvent.LOCAL_INFO , displayInfo);
 		};
 		
+		public function exportObject(e:Event):void {
+			if (service && analizeTree.analize) {
+				var item:LibraryItem = new LibraryItem(Library.getFreeName(service.name + ":"), analizeTree.analize.target);
+				Library.add(item);
+				if (isSimple(item.value)) {
+					GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.SHOW_LIBRARY));
+				} else {
+					GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.EDIT_OBJECT , item));
+				}
+			}
+		}
+		
+		
+		private function isSimple(value:*):Boolean {
+			if (value is Boolean || value is String || value is Number || value is int) {
+				return true;
+			}
+			return false;
+		}
 		
 		
 		override public function replaceElement():void {
@@ -133,7 +158,7 @@ package turbosqel.view {
 		 * @param	e		event
 		 */
 		public function callRemoteMethod(e:Event):void {
-			//Console.Info("callRemoteMethod:",[currentMethod.name , responder ].concat( paramsBox.getParams()));
+			Console.Info("callRemoteMethod:",currentMethod.name);
 			if (!currentMethod) {
 				return;
 			}
@@ -148,6 +173,7 @@ package turbosqel.view {
 		 */
 		public function result(obj:Object):void {
 			analizeTree.analize = Analize.parse("result" , obj);
+			Console.Info("result:"+ UObject.toInfo(obj));
 			GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.LOCAL_INFO , "server return call result"));
 		}
 		
@@ -199,7 +225,7 @@ package turbosqel.view {
 		/**
 		 * current service
 		 */
-		protected var service:Service;
+		public var service:Service;
 		
 		/**
 		 * set current service
@@ -211,6 +237,7 @@ package turbosqel.view {
 			list.items = service.methods;
 			methodFocus = null;
 			refreshList();
+			
 			
 			service.connection.addEventListener(AMFServiceConnection.INFO , displayServiceInfo);
 			service.connection.addEventListener(AMFServiceConnection.ERROR , displayError);

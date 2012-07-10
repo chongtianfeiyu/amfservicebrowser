@@ -9,7 +9,9 @@ package turbosqel.view {
 	import turbosqel.events.ApplicationEvent;
 	import turbosqel.events.GlobalDispatcher;
 	import turbosqel.firefly.Align;
+	import turbosqel.net.AmfphpDiscovery;
 	import turbosqel.net.AMFServiceConnection;
+	import turbosqel.net.IDiscovery;
 	import turbosqel.services.Service;
 	
 	/**
@@ -68,7 +70,47 @@ package turbosqel.view {
 			////////////////////////////////
 			// apply button
 			new PushButton(this , { bottom:15 , right:15 } , "Add" , confirm);
+			new PushButton(this , { bottom:15 , left:15 } , "Call discovery service" , discovery);
 			
+		}
+		
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		// <------------------------------- DISCOVERY CHECK SEQUENCE
+		
+		protected var discoveryConnection:AMFServiceConnection;
+		
+		public function discovery(... args):void {
+			discoveryConnection = new AMFServiceConnection();
+			if (!discoveryConnection.connect(linkField.text)) {
+				infoLabel.text = "invalid url address";
+				return;
+			};
+			GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.LOCK));
+			enabled = false;
+			
+			var discovery:IDiscovery = new AmfphpDiscovery(); // future : get class from combobox
+			discovery.resultCallback(discoveryResult);
+			discovery.call(discoveryConnection);
+		};
+		
+		protected function discoveryResult(result:Array = null):void {
+			GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.UNLOCK));
+			if (result) {
+				infoLabel.text = "methods imported";
+				if (!service) {
+					service = Data.newService(nameField.text , linkField.text);
+					service.connection = discoveryConnection;
+				}
+				for (var i:int ; i < result.length ; i++) {
+					UArray.searchAndAdd(service.methods, result[i]);
+				}
+			} else {
+				infoLabel.text = "unable to import methods";
+			};
+			
+			enabled = true;
 		}
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +139,7 @@ package turbosqel.view {
 			}
 			////////////////////////////////
 			// remove window
+			GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.UNLOCK));
 			remove();
 		}
 		

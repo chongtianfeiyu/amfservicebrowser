@@ -5,6 +5,7 @@ package turbosqel.net {
 	import flash.events.NetStatusEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.net.NetConnection;
+	import flash.net.Responder;
 	import turbosqel.console.Console;
 	import turbosqel.events.DynamicEvent;
 	/**
@@ -21,6 +22,8 @@ package turbosqel.net {
 		public static const COMPLETE:String = "Complete";
 		public static const INFO:String = "Info";
 		public static const ERROR:String = "Error";
+		
+		public static const DISCOVERY:String = "discoveryComplete";
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////

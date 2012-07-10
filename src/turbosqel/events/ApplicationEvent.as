@@ -42,7 +42,18 @@ package turbosqel.events {
 		
 		
 		
+		public static const LOCK:String = "lockApplication";
 		
+		public static const UNLOCK:String = "unlockApplication";
+		
+		
+		
+		public static const SHOW_LIBRARY:String = "ShowLibrary";
+		
+		public static const INVALIDATE_LIBRARY:String = "RefreshLibrary";
+		
+		public static const EDIT_OBJECT:String = "EditObject";
+		public static const REMOVE_OBJECT:String = "RemoveObject";
 		
 		
 		

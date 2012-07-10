@@ -11,6 +11,8 @@ package turbosqel
 	import turbosqel.events.ApplicationEvent;
 	import turbosqel.events.GlobalDispatcher;
 	import turbosqel.global.LocalObject;
+	import turbosqel.library.Library;
+	import turbosqel.library.LibraryItem;
 	import turbosqel.services.Service;
 	/**
 	 * ...
@@ -78,7 +80,7 @@ package turbosqel
 				if (imported == null) {
 					trace("no cookies");
 					return;
-				}
+				};
 				
 				for each (var service:Service in imported) {
 					if (!UArray.searchValues(services, "link" , service.link)) {
@@ -87,16 +89,20 @@ package turbosqel
 				};
 				GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.SERVICES_LIST_CHANGE));
 			} catch (e:Error) {
-				GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.POP_UP , "error loading services from memory"));
+				GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.POP_UP , "error loading services from memory : \n" +e.message));
 				LocalObject.remove(key);
-			}
+				Console.Info("error:",e.message, e.getStackTrace());
+			};
+			Library.importLocal();
 		};
 		
 		/**
 		 * save to local storeage
 		 */
 		public static function saveLocal():void {
-			LocalObject.save(key,"array" , services);
+			Console.Info("save items:", services.length);
+			LocalObject.save(key, "array" , services);
+			Library.saveLocal();
 		}
 		
 		
@@ -104,7 +110,8 @@ package turbosqel
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		
-		// <------------------------------- SAVE / LOAD FILE
+		
+		// <------------------------------- SAVE
 		
 		/**
 		 * open save window
@@ -112,12 +119,21 @@ package turbosqel
 		 */
 		public static function exportFile(... args):void {
 			var ba:ByteArray = new ByteArray();
-			ba.writeObject(services);
+			var save:Object = { services:services , library:Library.items };
+			ba.writeObject(save);
 			ba.compress();
 			(new FileReference()).save(ba,"amfservices.amf3");
 		};
 		
 		
+		public static function exportSingleService(serv:Service):void {
+			var ba:ByteArray = new ByteArray();
+			ba.writeObject({services:[serv]});
+			ba.compress();
+			(new FileReference()).save(ba,"amfservice.amf3");
+		}
+		
+		// <------------------------------- LOAD FILE
 		
 		/**
 		 * loading operation scope
@@ -157,14 +173,23 @@ package turbosqel
 		public static function parseBytes(bytes:ByteArray):void {
 			try {
 				bytes.uncompress();
-				var items:Array = bytes.readObject();
-				for each(var item:Service in items ) {
-					services.push(item);
+				var items:Object = bytes.readObject();
+				if (items.services) {
+					for each(var item:Service in items.services ) {
+						services.push(item);
+					}
 				}
+				if (items.library) {
+					for each(var lib:LibraryItem in items.library ) {
+						Library.items.push(lib);
+					}
+				}
+				
 				GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.SERVICES_LIST_CHANGE));
-				GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.POP_UP , "loaded " + items.length + " items"));
+				GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.POP_UP , "file loaded"));
 			} catch (e:Error) {
-				GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.POP_UP , "parse error:"+e.message));
+				GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.POP_UP , "parse error:\n" + e.message));
+				
 			}
 		}
 		

@@ -507,12 +507,16 @@ package turbosqel.analizer{
 			removeAllListeners();
 			removeAnalize(this);
 			debug = null;
-			content.remove();
-			content = null;
+			if (content) {
+				content.remove();
+				content = null;
+			}
 			UObject.remove(container);
 			container = null;
-			analize.remove();
-			analize = null;
+			if(analize){
+				analize.remove();
+				analize = null;
+			}
 			target = null;
 		};
 		

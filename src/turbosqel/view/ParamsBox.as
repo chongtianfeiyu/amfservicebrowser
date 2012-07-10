@@ -4,10 +4,13 @@ package turbosqel.view
 	import com.bit101.components.Label;
 	import com.bit101.components.VBox;
 	import flash.display.DisplayObjectContainer;
+	import turbosqel.Config;
 	import turbosqel.console.CommandClosure;
 	import turbosqel.console.Console;
 	import turbosqel.events.ApplicationEvent;
 	import turbosqel.events.GlobalDispatcher;
+	import turbosqel.library.Library;
+	import turbosqel.library.LibraryItem;
 	import turbosqel.services.RemoteMethod;
 	
 	/**
@@ -23,7 +26,7 @@ package turbosqel.view
 		
 		public function ParamsBox(parent:DisplayObjectContainer,params:Object) {
 			super(parent, params);
-		}
+		};
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,12 +65,20 @@ package turbosqel.view
 		public function getParams():Array {
 			var res:Array = new Array();
 			for (var i:int ; i < paramsList.length ; i++ ) {
+				var value:Object;
 				if (paramsList[i].text.charAt(0) == "$") {
 					// for library
-				};
-				switch(currentMethod.params[i]) {
+					var item:LibraryItem = Library.getItem(paramsList[i].text.substr(1));
+					if (item) {
+						value = item.value;
+					} else {
+						GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.POP_UP , "Parameter '"+paramsList[i].text +"' not found."));
+						value = null;
+					};
+				} else {
+					switch(currentMethod.params[i].type) {
 					case RemoteMethod.NONE :
-						var value:Object = null;
+						value = null;
 						break;
 					case RemoteMethod.INT :
 						value = int(paramsList[i].text);
@@ -80,16 +91,16 @@ package turbosqel.view
 						break;
 					case RemoteMethod.OBJECT :
 					case RemoteMethod.ARRAY :
-						Console.Info("json parse");
 						try {
-						value = JSON.parse(paramsList[i].text);
+							value = JSON.parse(paramsList[i].text);
 						} catch (e:Error) {
-							
 							var line:String = paramsList[i].text.length > 50 ? paramsList[i].text.substr(0, 50): paramsList[i].text;
 							GlobalDispatcher.dispatchEvent(new ApplicationEvent(ApplicationEvent.POP_UP , "JSON parse error:"+e.message+ " on line:\n" + paramsList[i].text));
 						}
 						break;
-				}
+					}
+				};
+				
 				currentMethod.lastParams[i] = paramsList[i].text;
 				res[i] = value;
 			}

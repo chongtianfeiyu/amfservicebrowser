@@ -3,11 +3,14 @@ package turbosqel.view {
 	import com.bit101.components.PushButton;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.utils.setTimeout;
+	import turbosqel.console.Console;
 	import turbosqel.Data;
 	import turbosqel.events.ApplicationEvent;
 	import turbosqel.events.GlobalDispatcher;
 	import turbosqel.firefly.Align;
 	import turbosqel.firefly.ElementContainer;
+	import turbosqel.library.Library;
 	import turbosqel.services.Service;
 	/**
 	 * ...
@@ -37,6 +40,7 @@ package turbosqel.view {
 			////////////////////////////////
 			// container setup
 			super( { top:0 , left:0 , right:0 , bottom:0 } );
+			
 			////////////////////////////////
 			// services list
 			list = new List(this , { top:50 , left:50 , right:50 , bottom:150 , enabled:Data.services.length > 0 } , Data.services);
@@ -46,6 +50,11 @@ package turbosqel.view {
 			newService = new PushButton(this , { horizontalPosition:0.2 , horizontalRatio:true, bottom:30, relativeWidth:0.2, height:100 } , "Add service" , addService);
 			editService = new PushButton(this , { enabled:false, align:Align.TOP ,horizontalRatio:true, horizontalPosition:0.5, relativeWidth:0.2 , horizontalRatio:true , bottom:30 , height:100 }, "Edit service" , openEditService);
 			removeService = new PushButton(this, {enabled:false, horizontalRatio:true, horizontalPosition:0.6 , relativeWidth:0.2 , bottom:30 , height:100}, "Remove service" , spliceService);
+			////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////
+			// top menu
+			new PushButton(this , { align:Align.BOTTOM_LEFT , right:350 , top:50 }, "Open library", UFunction.delegateEvent(Library.show));
+			
 			////////////////////////////////
 			// save data to local store
 			saveService = new PushButton(this ,{align:Align.BOTTOM_LEFT , right:50 , top:50},"Save",UFunction.delegateEvent(Data.saveLocal))
@@ -53,12 +62,11 @@ package turbosqel.view {
 			// save/load file
 			new PushButton(this , {align:Align.BOTTOM_LEFT , right:150 , top:50}, "Save to file", Data.exportFile);
 			new PushButton(this , {align:Align.BOTTOM_LEFT , right:250 , top:50}, "Load from file", Data.importFile);
-			
 			////////////////////////////////
 			// invalidate services list
 			GlobalDispatcher.addEventListener(ApplicationEvent.SERVICES_LIST_CHANGE, onListChange);
+			
 		};
-		
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////
